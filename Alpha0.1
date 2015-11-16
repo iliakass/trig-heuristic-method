@@ -1,0 +1,560 @@
+
+                
+                //Project starts here: special case when objective variable distance to the origin intersects the k-th constraints is not yet address here
+                
+                //Two variable optimization project, which includes more than three constrains
+                
+                #include <iostream> // std::cout, std::cin
+                #include <cmath> // std:: sqrt, std::pow, std::abs
+                
+                using namespace std;
+                
+                int i=0, j=0; // incremental operators
+                
+                int a=0; // incremental operator in an array that is used to record the smallest angle for the shortest distance gamma, among equally small angles
+                
+                int b=0; // incremental operator used to organize constraints bound by the k-th constraint; these constraints are below a threshold that requires them to considered in the set of primary constraints
+                
+                int f=0; // incremental operators
+                
+                int r=0; // operator set to sum the number of primary reference constraints, which excludes erased secondary set of reference constraints, and system constraints, which are established based on the k-th bounds
+                
+                int q=0; // operator used to identify second reference constraint after the k-th one; this constraint is included in a primary set of constraint that are not bounded by the k-th constraint
+                
+                int k=0; // operator used to identify first reference constraint, which yields the shortest distance gamma and smallest angle.
+                
+                long double p=0; // operator used to subtract one array from another, and operator used towards computing the power function
+                
+                int num=2; // number of variables in the objective function
+                
+                int t=6; // number of constraints
+                
+                int u=0; // increment operator used to assign value to array beyond the 6th referenced constraint
+                
+                int g=0; // operator used to replace the primary set of reference constraints and erase secondary set of constraints
+                
+                long double newconstr[8][2]; // matrix containing six of the original constraints and two project generated constraints
+                
+                long double formatconstr[8][2]; // matrix containing set of primary reference constraints, which excludes erased secondary set of reference constraints
+                 
+                long double epi[2][2]; // matrix inverse of the matrix containing two constraints meant to be used for obtaining the quantity for each variable
+                
+                long double x=0; // operator used to sum the squares, to measure distance between constraint coordinates and variable coefficients, by taking the square root for the sum of squares
+                
+                int y=0; // identifier when the angle for the k-th constraint is null
+                
+                int s=0; // identifier for goto loop, when angle for th k-th constraint is null
+                
+                long double z=0; // operator used to sum the squares, to measure distance between variable coefficients and origin
+                
+                int LC[8] = {}; 
+                
+                long double LK[8] = {}; // measure distance between the k-th constraint and second likely constraint
+                
+                long double L7[8] = {};  // array used to store angles
+                
+                long double LA[8] = {};  // measure distance between constraint coordinates and origin; there are six constraints specified by the user and two system generated
+                // array used to store the distance between system constraint coordinates and origin; there are six constraints specified by the user and two system generated
+                
+                long double L6[8] = {}; // measure distance between constraint coordinates and variable coefficients; there are six constraints specified by the user and two system generated
+                // array used to store the distance between system constraint coordinates and variable coefficients; there are six constraints specified by the user and two system generated
+                
+                long double L8[8] = {}; // compute cosine, and thereafter record the angle, value of the triangle formed between the variable coefficients, a given constraint, and the origin
+                
+                long double L9[8] = {};  // multiply distance between the variable coefficients and a given constraints and the cosine value; this provides distance between the two points if they were aligned between the variable coefficients and the origin
+                
+                long double LB[8] = {};  // array that includes all constraints that will be excluded from the set of primary constraints, since the array includes all constraints bound by the k-th constraint below a target threshold
+                
+                long double LE[8] = {};  // array used record the angle of the constraint yielding the smallest distance
+                
+                int LF[8] = {};  // array used store which constraint yields the smallest distance
+                // array used to store the distance between system constraint coordinates and k-th constraint
+                
+                long double w=0, v=0; // angles recorded from triangles formed, which are used to determine which plane formed by the binding a system constraint and the k-th constraint intersects the line formed by binding the coefficient variables and the origin
+                
+                long double sol=0; // operator used to sum parameters for each constraint; this is equivalent to a sumproduct of the constraint with a unity vector
+                
+                long double SOLL[2]; // array used to store the solution set for the maximization project
+                
+                long double N[2] = { 18.3333333333333333, 20 }; // array of coefficients for variables in the objective function, which will be used in the maximization project within the prescribed constraint
+                
+                // parameters for each of the six constraints are assigned to the variable to be optimized
+                long double constraints[6][2]= {
+                {1, 2}, 
+                {3, 4},
+                {5, 6}, 
+                {7, 8}, 
+                {9, 10}, 
+                {11, 12}
+                };
+                
+                // limiting parameters for each of the six constraints
+                long double limit[6]= {
+                10, 20, 30, 40, 50, 60
+                };
+                
+                //list of functions
+                
+                void cosine_and_angle(long double array1[8], long double array2[8], int upper_bound); //compute cosine value and angle of the triangle formed between the variable coefficients, a given constraint, and the origin
+                
+                void min(long double array3[8], int upper_bound); //function used to determine the minimum within an array and below an upper bound
+                
+                void matrix_inverse(long double array4[2][2], int amount6); //function used to compute the inverse of a 2 x 2 matrix
+                
+                long double cosine(long double amount1, long double amount2, long double amount3); //function used to compute the cosine 
+                
+                void dist_constr_var (long double array5[8][2], int amount5, int amount4, long double return_array[8], int upper_bound, int increment); //measure distance between constraint coordinates and variable coefficients, by taking the square root for the sum of squares
+                
+                //int main begins
+                
+                int main () 
+                {
+                
+                    // defined coefficients are provided for each variable of the objective function for the maximization problem
+                    for(i=0;i<t;i++){
+                        for(j=0;j<num;j++){
+                            newconstr[i][j] = constraints[i][j]/ limit[i];
+                        }
+                    }
+                    
+                    //measure distance between constraint coordinates and origin, by taking the square root for the sum of squares
+                    dist_constr_var (newconstr, 0, 0, LA, t, 0) ;
+                    
+                    //measure distance between constraint coordinates and variable coefficients, by taking the square root for the sum of squares
+                    dist_constr_var (newconstr, 0, 1, L6, t, 0) ;
+                
+                    //measure distance between variable coefficients and origin, by taking the square root for the sum of squares
+                    for(j=0;j<num;j++){
+                        z += pow(N[j],2);
+                    }
+                    z = sqrt(z);   //measure distance between variable coefficients and origin
+                        
+                    //compute cosine value and angle of the triangle formed between the variable coefficients, a given constraint, and the origin    
+                    cosine_and_angle(LA,L6,t) ; 
+                    
+                    //find the smallest distance gamma recorded in array L9
+                    min(L9, t);
+                
+                    //record all constraints for which the smallest distance gamma is equal
+                    for(i=0;i<t;i++){
+                        if (L9[i] == x) {
+                		    LF[a]=i; //array used record which constraint yields the smallest distance gamma
+                            LE[a]=L8[i]; // array used record the angle of the constraint yielding the smallest distance gamma
+                            a++;
+                        }
+                    }
+                
+                    //record the smallest angle for the shortest distance gamma, which is recorded in the set of ‘’a’’ for equally small angles
+                    min(LE, a);
+                    
+                    //record the k-th constraint that yields the shortest distance gamma and angle, which is the first reference constraint
+                    for(i=0;i<a;i++){
+                        if (LE[i] == x) {
+                            k = LF[i];
+                            x=0; 
+                        }
+                    }
+                    
+                    //determnine if the anlge for the k-th constraint is null
+                    for(j=0;j<num;j++){
+                        LE[j] = N[j]/ newconstr[k][j];
+                        x +=  LE[j];
+                    }
+                    
+                    for(j=0;j<num;j++){
+                        if ( x/num - LE[j] < 1e-10) { // y==1, this case applies when the angle for the k-th constraint is null, within rounding erro 
+                            p++;
+                        }
+                    }
+                    
+                    if (p == num){
+                        y = 1;
+                    }
+                    
+                    p = 0;
+                    
+                    //mapping of back-up constraints by using the k-th constraint as binding
+                    newconstr[6][0] = newconstr[k][0];
+                    newconstr[6][1] = 0;
+                    newconstr[7][0] = 0;
+                    newconstr[7][1] = newconstr[k][1];
+                
+                    if (y != 1) {
+                        //record the distance between the newly created system constraint, by taking the square root of the sum of squares
+                        dist_constr_var (newconstr, 0, 0, LA, num, t) ;
+                        dist_constr_var (newconstr, 0, 1, L6, num, t) ;
+                
+                        //measure distance between k-th constraint and system generated constraint
+                        dist_constr_var (newconstr, 1, 0, LK, num, t);
+                
+                        //back-up constraints are now available
+                
+                        //measure the angle for each triangle and verify whether the angle formed by the k-th constraint is the difference between the former two
+                        for(i=0;i<num;i++){
+                            u = i+t;
+                	        v = cosine(LK[u], L6[u], L6[k]);
+                            v = acos(v);
+                    
+                            w = cosine(LA[u], z, L6[u]);
+                            w = acos(w);
+                
+                            //determine which of the two system constraints should be used as the second reference L-th constraint with the k-th one
+                    
+                            //computational error prevents the certitude of additional for angles; an error of 1e-17 is chosen as an acceptable threshold
+                            if (abs( L8[k] + w - v )< 1e-10 ){
+                	            q=i+t;
+                	            
+                            }
+                        }
+                
+                        for(j=0;j<num;j++){
+                            if (newconstr[q][j] == newconstr[k][j]){
+                                a = j;
+                                v = newconstr[k][j];
+                                
+                            }
+                        }
+                    }
+                    
+                    repeat:
+                    
+                    //verify whether all constraints, which exclude the k-th constraint, are bound by the k-th primary constraint and its shared axis with the q-th constraint
+                    //repeat:
+                    b=0;
+                    g=0;
+                    w=0;
+                    
+                    u = 2+t;
+                    for(i=0;i<u;i++) {
+                    f=0;
+                    a=0;    
+                	        // if and only if the angle for the k-th constraint is not null, then all constraint that are below a threshold, which is defined by the segment binding the k-th constraint and the q-th constraint, will chosen for removal
+                	        
+                	        // review all constraints not excluded from the set of primary constraints, since the array includes all constraints bound by the k-th constraint below a target threshold
+                	        if (y != 1) {
+                	            if (i != k) {  
+                	                if (newconstr[i][a] < v) {
+                                        f++;
+                                    }
+                                
+                                    if (newconstr[i][a] >= v) {
+                	                    a++;
+                	                }
+                	            }
+                	            if (i == k)
+                	            {
+                	                a++;   
+                	            }
+                	        }    
+                	        if (y == 1) {
+                	            if (i != k) {  
+                	                if (newconstr[i][s] < newconstr[k][s]) {//repeat loop for each "s" coordinate of the k-th constraint
+                                        f++;
+                	                }
+                	            
+                	                if (newconstr[i][s] >= newconstr[k][s]) {//repeat loop for each "s" coordinate of the k-th constraint
+                                        a++;   
+                	                }
+                	            }
+                	            if (i == k)
+                	            {
+                	                a++;
+                	            }
+                	        }
+                            if ( f != 0 ) {
+                	            LB[b] = i; //i-th constraint will be recorded in the LB array, which includes all constraints that will be excluded from the set of primary constraints
+                                b++;// ”b” operator indicates the total number of constraints bound by the k-th constraint
+                            }
+                            
+                            if ( a != 0 ) {// array used to sort the reference set of primary constraints
+                	            LF[g] = i;
+                                if (i == k)
+                	            {
+                	                k=g; 
+                	            }
+                	            g++;
+                            }
+                    }
+                    
+                    f=0;
+                    // if the number of constraints excluded from the set of primary constraints amounts to the total number constraints minus one, which is the k-th constraint, then the k-th constraint is the only binding one
+                    
+                    g=0;
+                 
+                    if ( b == (u-2) ) { a=1; } // a is an operator used to determine whether the first reference constraint is the only binding constraint
+                    
+                    if (a == 1) {
+                        
+                        //first constraint reference provides bounds for solution; the L-th and k-th constraints are used to determine the solution
+                        //the following provide the inverse of a 2x2 matrix and output of solution
+                        if (y != 1) {
+                            matrix_inverse(newconstr, q);
+                        }
+                        
+                        if (y == 1) {
+                            for(i=0;i<num;i++){
+                                q=i+t;
+                                matrix_inverse(newconstr,q);
+                                cout<< "\n";
+                            }
+                            
+                        }
+                        
+                        s++;
+                        if (s < num) {
+                            goto repeat;
+                        }
+                        
+                        return 0; //the project ends here, if a=1
+                    }
+                    
+                    
+                    //matrix containing set of primary reference constraints, which excludes erased secondary set of reference constraints
+                    r = (u-b);
+                
+                    for (i=0;i<r;i++){
+                        a=LF[i];
+                		LE[i]=LF[i];
+                	    for (j=0;j<num;j++){
+                            formatconstr[i][j] = newconstr[a][j];
+                            //cout<<LF[i]<<" ";
+                        }
+                        
+                    }
+                    
+                    //measure distance between constraint coordinates and origin, by taking the square root for the sum of squares
+                    dist_constr_var (formatconstr, 0, 0, LA, r, 0) ;
+                    //measure distance between constraint coordinates and variable coefficients, by taking the square root for the sum of squares
+                    dist_constr_var (formatconstr, 0, 1, L6, r, 0) ;
+                
+                    //recalculating cosine values
+                    cosine_and_angle(LA,L6,r) ; 
+                
+                    //begin to locate second reference constraint
+                    dist_constr_var (formatconstr, 1, 0, LK, r, 0);
+
+                    f=0;
+                    for(i=0;i<r;i++){
+                	    if (i != k) {
+                	    
+                            // angle recorded from the reference k-th constraint and likely second constraint
+                            v = cosine(LK[i], L6[k], L6[i]);
+                            v = acos(v); // determine angle v            
+                        }
+                	
+                        //sum of angles should amount to the addition of the k-th constraint angle and likely second reference constraint;
+                        //this provides an array of distances between the k-th constraints and other constraints; these distances must intersect with the distance from the origin to the objective variable coordinates
+                			
+                        //computational error prevents the certitude of additional for angles; an error of 1e-12 is chosen as an acceptable threshold rather than 1e-17
+                      
+                        // LF array used to store the second reference constraint after the k-th one; this constraint is included in a primary set of constraints that are not bounded by the k-th constraint
+                
+                        if (abs(L8[k]+L8[i]-v)<1e-10){
+                	        LF[f] = i;
+                            f++;
+                            
+                        }
+                    }
+                
+                    //determine angle formed between a slope orthogonal to gamma and the distance between the k-th constraint and the likely second reference constraint
+                
+                    for(i=0;i<f;i++){
+                	    a = LF[i];
+                        L7[i] = acos( (L9[a] - L9[k]) / LK[a] );
+                    }
+                
+                    //determine the minimum
+                    min(L7, f);
+                	
+                    for(i=0;i<f;i++){
+                	    if (L7[i]==x){
+                            q=LF[i];
+                            a=q;
+                        }
+                    }
+                    
+                    if (y != 1) {
+                        x=0;
+                        y=0;
+                        
+                        matrix_inverse(formatconstr,q);    //the following provide the inverse of a 2x2 matrix and output solution     
+                        
+                        for(i=0;i<r;i++) {
+                            if (i != a) {
+                                if (i != k) { //there is an issue
+                                    for (j=0;j<num;j++) {
+                                        x += formatconstr[i][j] * SOLL[j];
+                                        if (1 - x < 1e-10) {
+                                            LF[i]=i;
+                                            y++;
+                                        }
+                                    }
+                                    x=0;
+                                }
+                            }
+                        }
+                        
+                        for(a=0;a<y;a++) {
+                            q=LF[a];
+                            matrix_inverse(formatconstr,q);
+                        }
+                    }
+                   
+                    if (y == 1) {//case when the angle for the k-th constraint is null
+                    
+                        x=0;
+                        y=0;
+                        
+                        matrix_inverse(formatconstr,q);    //the following provide the inverse of a 2x2 matrix and output solution     
+                        
+                            for(i=0;i<r;i++) {
+                                if (i != a) {
+                                    if (i != k) { //there is an issue
+                                        for (j=0;j<num;j++) {
+                                            x += formatconstr[i][j] * SOLL[j];
+                                            if (1 -x < 1e-10) {
+                                                LF[i]=i;
+                                                y++;
+                                            }
+                                        }
+                                        x=0;
+                                    }
+                                }
+                            }
+                        
+                            for(a=0;a<y;a++) {
+                                q=LF[a];
+                                matrix_inverse(formatconstr,q);
+                            }
+                            
+                            s++;
+                            if (s < num) {
+                                goto repeat;
+                            }
+                            
+                    }  
+                    
+                    return 0;
+                    //This is the end of the project
+                }
+                
+                void cosine_and_angle(long double array1[8], long double array2[8], int upper_bound)
+                {
+                    for(i=0; i < upper_bound ;i++){
+                        //compute cosine value of the triangle formed between the variable coefficients, a given constraint, and the origin
+                        L8[i] = cosine(array1[i], array2[i], z); 
+                        
+                        //multiply distance, which is measured between the variable coefficients and a given constraints, and the cosine value; this provides distance between the two points if they were aligned between the variable coefficients and the origin; this distance will be referenced as gamma
+                        L9[i]=L8[i]*array2[i];
+                        
+                        //the angle for the cosine
+                        L8[i] = acos(L8[i]);
+                    }
+                }
+                
+                void min(long double array3[8], int upper_bound)
+                {
+                    //x will be assigned the minimum value
+                    x = array3[0];
+                    for(i=0 ; i < upper_bound ; i++) {
+                        if (array3[i] < x) {
+                            x = array3[i];
+                        }
+                    } 
+                }
+                
+                void matrix_inverse(long double array4[2][2], int amount6) // inverse of 2 x 2 matrix and output of solution
+                {
+                    x=0;
+                    q=amount6;
+                    
+                    // matrix containing two constraints meant to be used for obtaining the quantity for each variable
+                   
+                    //matrix inverse
+                    //determinant
+                    v = array4[k][0] * array4[q][1] - array4[k][1] * array4[q][0];
+                    
+                    epi[0][0] = array4[q][1] / v; 
+                    epi[1][1] = array4[k][0] / v; 
+                    epi[0][1] = - array4[k][1] / v; 
+                    epi[1][0] = - array4[q][0] / v; 
+                    
+                    //output of solution
+                    for(i=0;i<num;i++){
+                        for(j=0;j<num;j++){
+                            x += epi[i][j];
+                        }
+                        SOLL[i]=x;
+                        x=0;
+                    }
+                
+                    sol=0;
+                    for(i=0;i<num;i++){
+                	    sol += N[i] * SOLL[i];
+                    }
+                    
+                    //optimal quantities for each variable are
+                    cout<< "\noptimal quantities for each decision variable are respectively "<<SOLL[0]<<"  "<< SOLL[1]<< "\n";
+                
+                    //optimal solution is 
+                    cout<< "optimal solution is " <<sol << "\n";
+                    
+                    //set of optimal constraints which can be combined to determine the optimal quantity for decision variables
+                    cout<< "\nthis set of constraints yields the optimal quantity for the decision variables \n";
+                        
+                    cout<< "this k-th constraint is pre-requisit for any combination with the set \n[";    
+                    for(j=0;j<num;j++){
+                        cout<<constraints[k][j]<<" ";
+                    }
+                    cout<<"   <=  "<<limit[k]<< "\n\n";
+                    
+                    q = LE[amount6]; //warning: convert double to int
+                    
+                    if ( q > t-1 ) {    
+                        cout<< "all other constraints within the set are listed \n";
+                        for(j=0;j<num;j++){
+                            cout<<newconstr[q][j]*limit[k]<<" ";
+                        }       
+                        cout<<"]    <=  "<<limit[k]<<"\n\n";
+                    }
+                    
+                    if ( q <= t-1 ) {    
+                        cout<< "all other constraints within the set are listed \n";
+                        for(j=0;j<num;j++){
+                            cout<<constraints[q][j]<<" ";
+                        }       
+                        cout<<"]    <=  "<<limit[q]<<"\n\n";
+                    } 
+                    
+                }
+                
+                long double cosine(long double amount1, long double amount2, long double amount3) //function used to compute the cosine 
+                {
+                    return (pow(amount1,2) - pow(amount2,2) - pow(amount3,2)) / (-2 * amount2 * amount3);    
+                }
+                
+                //measure distance between constraint coordinates and variable coefficients, by taking the square root for the sum of squares
+                void dist_constr_var (long double array5[8][2], int amount5, int amount4, long double return_array[8], int upper_bound, int increment)
+                {
+                    x=0;
+                    
+                    for(i=0; i < upper_bound ;i++){
+                        
+                        u = i + increment; 
+                        
+                        for(j=0;j<num;j++){
+                            //measure distance between constraint coordinates and variable coefficients, by taking the square root for the sum of squares
+                		    x += pow((array5[u][j] - amount5*array5[k][j] - amount4*N[j]), 2);
+                        }    
+                
+                        // measure distance between constraint coordinates and variable coefficients
+                	    return_array[u] = sqrt(x);
+                	    x = 0;        
+                    }
+                }
+                
+                
+                //Compilation time 125ms and Execution time 31ms to be update
+
+
+
