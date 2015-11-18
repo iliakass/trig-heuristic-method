@@ -83,14 +83,14 @@ long double constraints[6][2]= {
 {1, 2}, 
 {3, 4},
 {5, 6}, 
-{7, 8}, 
-{9, 10}, 
+{15, 12}, 
+{12, 15}, 
 {11, 12}
 };
 
 // limiting parameters for each of the six constraints
 long double limit[6]= {
-10, 20, 30, 40, 50, 60
+10, 20, 30, 70, 70, 60
 };
 
 //list of functions
@@ -134,7 +134,6 @@ int main ()
     
     //find the smallest distance gamma recorded in array L9
     min(L9, t);
-
     //record all constraints for which the smallest distance gamma is equal
     for(i=0;i<t;i++){
         if (L9[i] == x) {
@@ -236,10 +235,10 @@ int main ()
 
                 if (newconstr[i][a] >= v) {
 	                x++;
+	                p++;
 	            }
 	       }
-	       if (i == k)
-	       {
+	       if (i == k) {
 	           x++;
 	       }
 	   }
@@ -274,7 +273,7 @@ int main ()
     // if the number of constraints excluded from the set of primary constraints amounts to the total number constraints minus one, which is the k-th constraint, then the k-th constraint is the only binding one
     a=0;
     g=0;
- 
+    
     if (p == 0) { a=1; } // a is an operator used to determine whether the first reference constraint is the only binding constraint
     p=0;
     
@@ -330,17 +329,16 @@ int main ()
             // angle recorded from the reference k-th constraint and likely second constraint
             v = cosine(LK[i], L6[k], L6[i]);
             v = acos(v); // determine angle v            
-        }
-	
-        //sum of angles should amount to the addition of the k-th constraint angle and likely second reference constraint;
-        //this provides an array of distances between the k-th constraints and other constraints; these distances must intersect with the distance from the origin to the objective variable coordinates
+        
+            //sum of angles should amount to the addition of the k-th constraint angle and likely second reference constraint;
+            //this provides an array of distances between the k-th constraints and other constraints; these distances must intersect with the distance from the origin to the objective variable coordinates
 			
-        //computational error prevents the certitude of additional for angles; an error of 1e-12 is chosen as an acceptable threshold rather than 1e-17
+            //computational error prevents the certitude of additional for angles; an error of 1e-12 is chosen as an acceptable threshold rather than 1e-17
       
-        // LF array used to store the second reference constraint after the k-th one; this constraint is included in a primary set of constraints that are not bounded by the k-th constraint
-        if (i != k) {
+            // L6 array used to store the second reference constraint after the k-th one; this constraint is included in a primary set of constraints that are not bounded by the k-th constraint
+        
             if (abs( L8[k] + L8[i] - v ) < 1e-10) {
-	            LF[f] = i;
+	            L6[f] = i;
 	            f++;
             }
         }
@@ -348,10 +346,8 @@ int main ()
     
     //determine angle formed between a slope orthogonal to gamma and the distance between the k-th constraint and the likely second reference constraint
     for(i=0;i<f;i++){
-        if (i != k) { 
-	        a = LF[i];
-            L7[i] = acos( (L9[a] - L9[k]) / LK[a] );
-        }    
+        a = L6[i];
+        L7[i] = acos( cosine( L9[a], L9[k], LK[a] ) );
     }
     
     //determine the minimum
@@ -359,7 +355,7 @@ int main ()
 	
     for(i=0;i<f;i++){
 	    if (L7[i]==x){
-            q=LF[i];
+            q=L6[i];
             a=q;
         }
     }
