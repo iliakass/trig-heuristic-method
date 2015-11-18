@@ -1,8 +1,3 @@
-//http://webcompiler.cloudapp.net/
-//http://cpp.sh/
-//http://codepad.org/
-//https://gcc.godbolt.org/
-//http://coliru.stacked-crooked.com
 
 //Project starts here: special case when objective variable distance to the origin intersects the k-th constraints is not yet address here
 
@@ -539,12 +534,3 @@ void dist_constr_var (long double array5[][2], int amount5, int amount4, long do
 	    x = 0;        
     }
 }
-
-
-//Compilation time 187ms and Execution time 750ms to be update
-
-
-
-
-
-
